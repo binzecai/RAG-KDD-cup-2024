@@ -86,9 +86,9 @@ class LLMPredictor:
         self.max_token = 4096
 
         self.kwargs = kwargs
-        self.device = torch.device(device)
-        self.model.eval()
-        self.model.to(self.device)
+        # self.device = torch.device(device)
+        # self.model.eval()
+        # self.model.to(self.device)
         print('successful  load LLM', model_path)
 
         

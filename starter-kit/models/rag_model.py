@@ -9,14 +9,11 @@ class RAGModel:
     def __init__(self, model_path, embedding_path) -> None:
         self.model_path = model_path
         self.embedding_path = embedding_path
-
-    
-    def generate_answer(self, query: str, search_results: List[Dict]) -> str:
-        
         # load model
         self.model = LLMPredictor(self.model_path)
         self.embedding_model = BGEpeftEmbedding(model_path=self.embedding_path)
-
+    
+    def generate_answer(self, query, search_results) -> str:
         # process web search
         docs = extract_web_sentences(search_results)
         db = FAISS.from_documents(docs, self.embedding_model)

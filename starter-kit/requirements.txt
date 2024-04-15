@@ -11,3 +11,4 @@ torch
 transformers
 langchain
 peft
+faiss-gpu
