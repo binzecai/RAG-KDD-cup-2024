@@ -12,3 +12,4 @@ transformers
 langchain
 peft
 faiss-gpu
+justext
