@@ -1,6 +1,9 @@
+from langchain.text_splitter import SpacyTextSplitter,SentenceTransformersTokenTextSplitter
 from blingfire import text_to_sentences_and_offsets
 from bs4 import BeautifulSoup
 from langchain.schema import Document
+import justext
+import re
 
 def extract_web_sentences(search_results, max_len=256):
     all_chunks = []
@@ -37,4 +40,24 @@ def extract_web_sentences(search_results, max_len=256):
                 i+=1
                 cleaned_chunks.append(current_chunk)
         all_chunks += chunks
+    return all_chunks
+
+def extract_web_chunks(search_results, max_len=256, chunk_size=300, chunk_overlap=100):
+    all_chunks = []
+    for idx,html_text in enumerate(search_results):
+        try:
+            paragraphs = justext.justext(html_text["page_result"], justext.get_stoplist("English"))
+            text_list = []
+            for paragraph in paragraphs:
+                if not paragraph.is_boilerplate:
+                    text_list.append(paragraph.text)
+            text = " ".join(text_list)
+            # text = text.replace('\n',' ')
+            text = re.sub(r'\[\d+\]', '', text)
+            spliter = SpacyTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+            # spliter = SentenceTransformersTokenTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+            chunks = [Document(page_content=chunk.replace('\n',' '), metadata={'web':idx+1}) for chunk in spliter.split_text(text)]
+            all_chunks += chunks
+        except:
+            pass
     return all_chunks
