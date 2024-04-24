@@ -45,6 +45,7 @@ class LLMPredictor:
         self.prompt_template = \
         """
         You are given a quesition and references which may or may not help answer the question. Your goal is to answer the question in as few words as possible.\n
+        Don't repeat the question in the answer. Give the answer directly!\n
         ### Question
         {query}
 
@@ -108,7 +109,7 @@ class LLMPredictor:
             # If the model fails to generate an answer, return a default response.
             answer = "I don't know"
         if len(answer.split('\n')) > 1:
-          answer = answer.split('\n')[0]
+            answer = answer.split('\n')[0]
         answer = answer.lower()
         # Trim the prediction to a maximum of 75 tokens (this function needs to be defined).
         trimmed_answer = trim_predictions_to_max_token_length(answer)
