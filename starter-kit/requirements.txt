@@ -13,3 +13,4 @@ langchain
 peft
 faiss-gpu
 justext
+numpy
