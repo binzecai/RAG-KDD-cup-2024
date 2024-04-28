@@ -41,18 +41,20 @@ CRAG_MOCK_API_URL = os.getenv("CRAG_MOCK_API_URL", "http://localhost:8000")
 
 class LLMPredictor:
     def __init__(self, model_path, device="cuda", **kwargs):
-
         self.prompt_template = \
         """
-        You are given a quesition and references which may or may not help answer the question. Your goal is to answer the question in as few words as possible.\n
-        Don't repeat the question in the answer. Give the answer directly!\n
+        [INST] <<SYS>>You are an an AI language model assistant capable of answering user questions with the help of external documents.\n
+        If the information in the document contains the correct answer, you will answer accurately.\n
+        If the information in the documentation does not contain the answer, you will generate 'invalid question'.\n
+        Please note that external documents may contain noisy factual errors.\n
+        Please answer the question in as few words as possibley.<<SYS>>
         ### Question
         {query}
 
-        ### References 
+        ### References
         {references}
 
-        ### Answer
+        ### Answer [/INST]
         """
         # Configuration for model quantization to improve performance, using 4-bit precision.
         bnb_config = BitsAndBytesConfig(
@@ -81,7 +83,7 @@ class LLMPredictor:
             task="text-generation",
             model=self.model,
             tokenizer=self.tokenizer,
-            max_new_tokens=10,
+            max_new_tokens=100,
         )
 
         self.max_token = 4096
@@ -97,20 +99,19 @@ class LLMPredictor:
         final_prompt = self.prompt_template.format(
             query=query, references=references
         )
-
-        # Generate an answer using the formatted prompt.
         result = self.generation_pipe(final_prompt)
         result = result[0]["generated_text"]
-
         try:
             # Extract the answer from the generated text.
-            answer = result.split("### Answer\n")[-1]
+            answer = result.split("### Answer [/INST]\n")[-1]
         except IndexError:
             # If the model fails to generate an answer, return a default response.
             answer = "I don't know"
+        if len(answer.split(':')) > 1:
+            answer = answer.split(':')[-1]
         if len(answer.split('\n')) > 1:
-            answer = answer.split('\n')[0]
-        answer = answer.lower()
+          answer = ','.join(answer.split('\n'))
+        answer = answer.lower().strip()
         # Trim the prediction to a maximum of 75 tokens (this function needs to be defined).
         trimmed_answer = trim_predictions_to_max_token_length(answer)
 
